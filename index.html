@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#080e14" />
+    <meta name="description" content="Nine real-time water and atmospheric scattering studies for PlayCanvas. Explore waves, reflections, caustics and underwater light." />
+    <title>Water — studies in light & motion</title>
+    <style>
+        :root { color-scheme:dark; --ui:'Helvetica Neue',Arial,sans-serif; --ink:#eef5f5; --muted:#9caeb5; }
+        * { box-sizing:border-box; }
+        html,body { margin:0; width:100%; height:100%; overflow:hidden; background:#080e14; font-family:var(--ui); color:var(--ink); }
+        canvas#app { display:block; width:100%; height:100%; touch-action:none; }
+        button { color:inherit; font:inherit; cursor:pointer; }
+        button:focus-visible,a:focus-visible { outline:2px solid #cffbf1; outline-offset:6px; }
+        .bar { position:fixed; left:0; right:0; height:0; background:#080d12; z-index:4; pointer-events:none; transition:height .6s; }
+        .bar.top { top:0; } .bar.bottom { bottom:0; }
+        body.cinematic .bar.top { height:62px; }
+        body.cinematic .bar.bottom { height:82px; }
+        #brand { position:fixed; left:34px; top:22px; z-index:6; display:flex; gap:22px; align-items:baseline; pointer-events:none; }
+        #brand .t { font-size:14px; letter-spacing:.34em; text-transform:uppercase; }
+        #brand .s { color:var(--muted); font-size:10px; letter-spacing:.13em; text-transform:uppercase; }
+        #toolbar { position:fixed; top:16px; right:30px; z-index:7; display:flex; align-items:center; gap:6px; }
+        #toolbar button,#toolbar a { border:0; background:transparent; font-size:10px; letter-spacing:.1em; padding:9px 12px; text-transform:uppercase; border-radius:2px; text-decoration:none; color:inherit; }
+        #toolbar a:hover,#toolbar button:hover,#toolbar button[aria-pressed=true] { background:#ffffff15; }
+        #shot { position:fixed; left:4vw; bottom:102px; z-index:6; max-width:430px; pointer-events:none; text-shadow:0 2px 20px #0009; transition:opacity .5s; }
+        #shot::before { content:""; position:absolute; inset:-40px -60px -35px -4vw; background:radial-gradient(ellipse at bottom left,#000b,transparent 75%); z-index:-1; }
+        #shot .idx { font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:#e1edeea8; }
+        #shot .name { font-family:Georgia,'Times New Roman',serif; font-weight:400; font-size:clamp(32px,3.8vw,52px); line-height:1.12; letter-spacing:-.035em; margin:10px 0 12px; }
+        #shot .sub { font-size:11px; letter-spacing:.06em; color:#edf7f2c7; }
+        #shot .intent { font-size:12px; line-height:1.6; max-width:360px; color:#f3f8f4b3; margin-top:12px; }
+        #hud { position:fixed; right:34px; bottom:115px; z-index:6; text-align:right; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:#ffffffa6; text-shadow:0 1px 8px #000; pointer-events:none; line-height:1.9; }
+        #hud b { font-weight:400; }
+        #dots { overflow-x:auto; scrollbar-width:none; position:fixed; bottom:0; left:30px; right:30px; height:82px; z-index:6; display:flex; align-items:stretch; gap:2px; }
+        #dots button { flex:1 0 108px; min-width:max-content; border:0; border-top:1px solid #ffffff14; background:transparent; text-align:left; padding:17px 12px 14px; color:#9fafb6; transition:color .2s,background .2s; }
+        #dots .num { display:block; font-size:9px; letter-spacing:.1em; opacity:.6; margin-bottom:7px; }
+        #dots .label { display:block; font-size:11px; white-space:nowrap; }
+        #dots button:hover { color:#fff; background:#ffffff06; }
+        #dots button.on { color:#e9f9f5; border-top-color:#bdede1; }
+        body.free #shot,body.free #dots { opacity:0; pointer-events:none; }
+        body.free #brand .s { display:none; }
+        body.free #hud { bottom:25px; }
+        body.clean #brand,body.clean #toolbar,body.clean #shot,body.clean #dots,body.clean #hud,body.clean .bar { visibility:hidden; }
+        #study-transition { position:fixed; inset:0; z-index:5; pointer-events:none; background:#080e14; opacity:0; transition:opacity .3s; }
+        #study-transition.covered { opacity:1; transition:none; }
+        #loader { position:fixed; inset:0; z-index:20; background:#080e14; display:grid; place-items:center; transition:opacity .8s; }
+        #loader.gone { opacity:0; pointer-events:none; }
+        #loader .w { text-align:center; }
+        #loader .t { font:30px Georgia,serif; letter-spacing:-.02em; }
+        #loader p { font-size:10px; color:var(--muted); letter-spacing:.16em; text-transform:uppercase; margin-top:16px; }
+        #loader .l { width:180px; height:1px; background:#ffffff12; margin:24px auto; overflow:hidden; }
+        #loader .l s { display:block; height:100%; width:40%; background:#bbdbd4; animation:sweep 1.2s ease-in-out infinite; }
+        @keyframes sweep { from { transform:translateX(-100%); } to { transform:translateX(350%); } }
+        #err { position:fixed; inset:0; z-index:30; margin:0; padding:6vh 6vw; background:#0a0d12; color:#ffb1a9; font:12px/1.6 monospace; white-space:pre-wrap; overflow:auto; display:none; }
+        .studio-panel { position:fixed; z-index:10; top:72px; right:24px; width:248px; max-height:calc(100dvh - 165px); overflow:auto; padding:18px 20px; background:#101a22ed; border:1px solid #ffffff15; border-radius:8px; box-shadow:0 18px 60px #0005; backdrop-filter:blur(18px); font-size:12px; }
+        .studio-panel[hidden] { display:none; }
+        .studio-panel header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; font-size:13px; }
+        .studio-reset { border:0; background:none; color:#9db7bc; font-size:11px; padding:0; }
+        .studio-range { display:block; margin:16px 0; }
+        .studio-range > span { display:flex; justify-content:space-between; margin-bottom:8px; }
+        .studio-range output { font-variant-numeric:tabular-nums; color:#8ea9b2; font-size:11px; }
+        .studio-panel input[type=range] { width:100%; height:3px; margin:0; accent-color:#b3dcd3; cursor:pointer; }
+        .studio-panel hr { border:0; border-top:1px solid #ffffff12; margin:21px 0; }
+        .studio-option { display:flex; align-items:center; justify-content:space-between; min-height:34px; }
+        .studio-option input { accent-color:#b3dcd3; width:15px; height:15px; }
+        .studio-option select { font:inherit; font-size:11px; color:#b3dcd3; background:#1a2932; border:0; border-radius:3px; padding:5px; }
+        body.clean .studio-panel { visibility:hidden; }
+        @media(max-width:1050px) { #brand { left:20px; } #brand .s { display:none; } #toolbar { right:8px; } #toolbar button,#toolbar a { padding:9px 8px; } #dots { left:12px; right:12px; overflow:auto; } #dots button { min-width:96px; } #shot { left:24px; bottom:102px; max-width:70vw; } #shot .intent { display:none; } #hud { right:22px; bottom:99px; font-size:8px; } }
+        @media(max-width:580px) { #capture,#toolbar a { display:none; } }
+        @media(prefers-reduced-motion:reduce) { * { transition:none!important; } }
+    </style>
+  <script type="module" crossorigin src="/water/assets/water-DQ9gKoas.js"></script>
+  <link rel="modulepreload" crossorigin href="/water/assets/Sky-kDXoWfl0.js">
+  <link rel="modulepreload" crossorigin href="/water/assets/Water-NQmcl4gk.js">
+</head>
+<body class="cinematic">
+    <canvas id="app" aria-label="Animated ocean and atmospheric sky"></canvas>
+    <div class="bar top"></div><div class="bar bottom"></div>
+    <div id="study-transition" aria-hidden="true"></div>
+    <div id="brand"><div class="t">Water</div><div class="s">Studies in light & motion</div></div>
+    <div id="toolbar" aria-label="Demo controls">
+        <a href="./demo/sky.html">Atmosphere ↗</a>
+        <a href="https://github.com/marklundin/water" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        <a id="editor-link" href="https://github.com/marklundin/water/blob/main/docs/playcanvas.md" target="_blank" rel="noopener noreferrer">PlayCanvas setup ↗</a>
+        <button id="play-toggle" type="button" aria-pressed="false">Pause</button>
+        <button id="fly-toggle" type="button" aria-pressed="false">Explore</button>
+        <button id="panel-toggle" type="button" aria-pressed="false">Studio</button>
+        <button id="capture" type="button" title="Save the current render">Capture</button>
+    </div>
+    <nav id="dots" aria-label="Water studies"></nav>
+    <div id="shot"><div class="idx"></div><div class="name"></div><div class="sub"></div><div class="intent"></div></div>
+    <div id="hud"><span id="hud-backend"></span> · <b id="hud-fps">–</b> fps<br><span id="hud-hint">← → studies · space explore · h studio</span></div>
+    <div id="loader"><div class="w"><div class="t">Building the sea.</div><p>Waves · atmosphere · light</p><div class="l"><s></s></div></div></div>
+    <pre id="err" role="alert"></pre>
+</body>
+</html>

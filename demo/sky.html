@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0c151e" />
+    <title>Atmosphere — a study in daylight</title>
+    <style>
+        :root { color-scheme:dark; font-family:'Helvetica Neue',Arial,sans-serif; color:#f3f5f1; }
+        * { box-sizing:border-box; }
+        html,body { width:100%; height:100%; margin:0; overflow:hidden; background:#0c151e; }
+        #sky { display:block; width:100%; height:100%; touch-action:none; cursor:grab; }
+        #sky:active { cursor:grabbing; }
+        header { position:fixed; top:0; left:0; right:0; padding:28px 38px; display:flex; align-items:center; justify-content:space-between; background:linear-gradient(#09142265,transparent); pointer-events:none; }
+        .brand { font-size:12px; letter-spacing:.3em; text-transform:uppercase; }
+        a { color:inherit; text-decoration:none; font-size:10px; letter-spacing:.13em; text-transform:uppercase; pointer-events:auto; }
+        a:hover { text-decoration:underline; text-underline-offset:5px; }
+        .intro { position:fixed; left:38px; bottom:42px; width:36%; pointer-events:none; text-shadow:0 1px 18px #00101c88; }
+        .eyebrow { font-size:9px; letter-spacing:.24em; text-transform:uppercase; color:#eef2eaa8; }
+        h1 { font:400 clamp(32px,4.3vw,64px)/1.04 Georgia,'Times New Roman',serif; letter-spacing:-.035em; margin:13px 0 17px; }
+        .intro p { font-size:12px; line-height:1.75; color:#eef3e4b3; max-width:310px; }
+        .foot { position:fixed; inset:auto 0 0; height:48%; background:linear-gradient(transparent,#07111a8c); pointer-events:none; }
+        .controls { position:fixed; bottom:42px; right:38px; width:min(430px,45vw); padding:24px 25px 20px; background:#08151d8c; border:1px solid #f3f7ec24; backdrop-filter:blur(18px); border-radius:3px; }
+        .studies { display:flex; gap:18px; margin-bottom:25px; }
+        button { font:inherit; color:inherit; cursor:pointer; }
+        .studies button { border:0; border-bottom:1px solid transparent; padding:0 0 8px; background:none; font-size:10px; letter-spacing:.06em; color:#f0f5ed8c; }
+        .studies button[aria-pressed=true] { border-color:#f0f5ed; color:#f0f5ed; }
+        label { display:flex; justify-content:space-between; gap:10px; margin-bottom:10px; font-size:10px; letter-spacing:.08em; }
+        output { color:#f0f5edaa; font-variant-numeric:tabular-nums; }
+        input[type=range] { display:block; width:100%; margin:0 0 23px; height:2px; accent-color:#e4eddc; cursor:pointer; }
+        .bottom-row { display:flex; justify-content:space-between; align-items:center; gap:10px; color:#f0f5ed7a; font-size:9px; letter-spacing:.04em; }
+        #reset-view { background:none; border:0; padding:0; font-size:9px; text-decoration:underline; text-underline-offset:3px; }
+        button:focus-visible,a:focus-visible,input:focus-visible { outline:2px solid #e3f5cf; outline-offset:6px; }
+        #status { position:fixed; inset:0; z-index:4; display:grid; place-items:center; background:#0c151e; transition:opacity .6s; }
+        #status p { font:24px Georgia,serif; }
+        #status.ready { opacity:0; pointer-events:none; }
+        #status.failed { display:block; padding:8vh 8vw; }
+        #status.failed p { font:13px/1.7 monospace; white-space:pre-wrap; color:#ffc3b3; }
+        body.clean header,body.clean .intro,body.clean .controls,body.clean .foot { display:none; }
+        @media(max-width:700px) {
+            header { padding:22px; }
+            .intro { left:22px; bottom:265px; width:80%; }
+            h1 { font-size:36px; margin:8px 0; }
+            .intro p { font-size:11px; max-width:290px; }
+            .controls { bottom:22px; right:22px; left:22px; width:auto; padding:20px; }
+            .studies { margin-bottom:19px; }
+            input[type=range] { margin-bottom:20px; }
+            .foot { height:70%; }
+        }
+        @media(prefers-reduced-motion:reduce) { * { transition:none!important; } }
+    </style>
+  <script type="module" crossorigin src="/water/assets/sky-DOheD74z.js"></script>
+  <link rel="modulepreload" crossorigin href="/water/assets/Sky-kDXoWfl0.js">
+</head>
+<body>
+    <canvas id="sky" aria-label="Atmospheric sky. Drag to look around and scroll to change the field of view."></canvas>
+    <div class="foot"></div>
+    <header><div class="brand">Atmosphere</div><a href="/">Water studies ↗</a></header>
+    <div class="intro"><div class="eyebrow" id="eyebrow">02 / Golden hour</div><h1 id="study-title">Light, at the<br>edge of day.</h1><p id="study-description">Amber light gathers around the low sun. Above it, the last blue of the day opens into a deeper sky.</p></div>
+    <section class="controls" aria-label="Atmosphere controls">
+        <nav class="studies" aria-label="Sky studies">
+            <button type="button" data-study="daylight" aria-pressed="false">Daylight</button>
+            <button type="button" data-study="golden" aria-pressed="true">Golden hour</button>
+            <button type="button" data-study="twilight" aria-pressed="false">Afterglow</button>
+        </nav>
+        <label for="elevation">SUN ELEVATION <output id="elevation-value" for="elevation">3.2°</output></label>
+        <input type="range" id="elevation" min="-6" max="70" value="3.2" step="0.2" />
+        <label for="haze">AEROSOL DENSITY <output id="haze-value" for="haze">1.4×</output></label>
+        <input type="range" id="haze" min="0" max="8" value="1.4" step="0.1" />
+        <div class="bottom-row"><span>Drag to look · scroll to zoom</span><button type="button" id="reset-view">Face the sun</button></div>
+    </section>
+    <div id="status" role="status"><p>Gathering the light.</p></div>
+</body>
+</html>

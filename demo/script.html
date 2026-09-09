@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Water + Sky · PlayCanvas Script example</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101a23;color:#fff;font:14px system-ui,sans-serif}canvas{display:block;width:100vw;height:100vh}aside{position:fixed;left:24px;top:24px;width:min(340px,calc(100vw - 48px));padding:20px;background:#14202bdb;border:1px solid #ffffff25;border-radius:12px;backdrop-filter:blur(16px)}h1{font-size:21px;margin:0 0 10px}p{line-height:1.6;color:#c1cdd6}button{margin:4px 4px 4px 0;padding:8px 12px;background:#ffffff13;color:inherit;border:1px solid #ffffff35;border-radius:6px;cursor:pointer}label{display:grid;gap:8px;margin:14px 0}a{color:#b9e7f1}output{font-size:12px;color:#a9d6c0}#error{color:#ffbbaa;white-space:pre-wrap}
+</style>
+  <script type="module" crossorigin src="/water/assets/scripts-a07YWPje.js"></script>
+  <link rel="modulepreload" crossorigin href="/water/assets/Sky-kDXoWfl0.js">
+  <link rel="modulepreload" crossorigin href="/water/assets/Water-NQmcl4gk.js">
+</head>
+<body>
+<canvas id="application"></canvas>
+<aside>
+<h1>Two scripts. Your scene.</h1>
+<p>The camera, light and simple reference objects belong to this application. Water and sky attach as independent PlayCanvas components.</p>
+<label>Wind speed <input id="wind" type="range" min="1" max="20" value="5" step="1" aria-label="Wind speed"></label>
+<button id="water-toggle" type="button">Disable water</button><button id="sky-toggle" type="button">Disable sky</button>
+<p><a href="/">Water gallery</a> · <a href="sky.html">Atmosphere</a></p>
+<output id="status" aria-live="polite">Waiting for atmosphere…</output><p id="error" role="alert"></p>
+</aside>
+</body>
+</html>

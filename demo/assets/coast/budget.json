@@ -1,0 +1,42 @@
+{
+  "triangles": {
+    "Coast rock 01": 13991,
+    "Coast rock 02": 13998,
+    "Coast rock 03": 13998,
+    "Coast rock 04": 13998,
+    "Coast rock 05": 13990,
+    "Coast rock 06": 13998,
+    "Coast rock 07": 13998,
+    "Coast rock 08": 13990,
+    "Coast rock 09": 13940,
+    "Coast rock 10": 7518,
+    "Coast rock 11": 22113,
+    "Coast rock 12": 7518,
+    "Coast rock 13": 13939,
+    "Coast rock 14": 13998,
+    "Coast rock 15": 22165,
+    "Coast rock 16": 13999,
+    "Coast rock 17": 22157,
+    "Coast rock 18": 13990,
+    "Coast rock 19": 13990,
+    "Coast rock 20": 13999,
+    "Coast rock 21": 13990,
+    "Coast rock 22": 13998,
+    "Coast terrain": 202175,
+    "Deep basin": 1918
+  },
+  "totalTriangles": 523368,
+  "previousTerrainTriangles": 589784,
+  "previousRockTriangles": 1093117,
+  "glbBytes": 32762548,
+  "bathymetryBytes": 2167362,
+  "sourceTriangles": {
+    "boulder_01": 57444,
+    "coast_rocks_01": 47491,
+    "coast_rocks_03": 56843,
+    "coast_rocks_05": 53894,
+    "rock_09": 9932,
+    "sand_rocks_small_01": 51689
+  },
+  "blender": "5.2.1 LTS"
+}

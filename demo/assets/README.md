@@ -80,3 +80,16 @@ Trimmed scan bases meet buried terrain collars, with a vertex-painted bedrock ma
 footprints. Terrain PBR coordinates vary smoothly and blend scales to reduce obvious repetition.
 The source scan images are reused; there are no higher-resolution texture additions.
 Actual geometry and file budgets are recorded in `coast/budget.json`.
+
+## Web delivery compression
+
+`npm run build` copies the assets into `dist/`, then runs
+[`scripts/optimize-assets.mjs`](../../scripts/optimize-assets.mjs). Source assets remain unchanged.
+The delivery copy uses Draco mesh compression (18-bit positions), and JPEG re-encoding with
+full chroma resolution, including normal maps. Texture dimensions, triangle counts, material
+boundaries and vertex masks are preserved. This is lossy encoding, not mesh simplification.
+
+The September 2026 delivery totals **24.2 MB**, down from **63.1 MB** (62% smaller).
+Bathymetry remains byte-for-byte identical. Existing asset URLs remain valid for Editor scenes.
+Decoded texture memory and the renderer's frame cost are not reduced by this download optimization.
+The build uses [glTF Transform](https://gltf-transform.dev/) and Sharp; no new runtime library is required.

@@ -28,10 +28,12 @@ The water keeps moving while the camera is paused. WebGPU is preferred; WebGL2 i
 
 The [Editor example](https://playcanvas.com/editor/scene/2591939) is a compact Adrift scene: an authored camera, coast and buoy entities, and explicit script attributes connecting water, sky, lighting and materials. Geometry and textures belong to the Editor project. The nine-study gallery remains a separate web example.
 
-The reusable components are **`waterSurface`** and **`atmosphereSky`**. They use your project's camera and light; the example's coast and cinematic treatment are separate.
+The reusable components are **`waterSurface`** and **`atmosphereSky`**, each with its own
+implementation module. Water contains no sky, terrain, buoy or post effects. Each Adrift behaviour
+is a separate example script. You can copy just the water pair and [supply your own lighting](docs/playcanvas.md#bathymetry-and-custom-lighting).
 
-1. Download [`water-scripts.mjs`](https://github.com/marklundin/water/raw/refs/heads/main/dist-editor/water-scripts.mjs), or run `npm run build:editor`.
-2. Upload it to the Editor's Assets panel and parse its script attributes.
+1. Download [`water-surface.mjs`](dist-editor/water-surface.mjs) + [`water-lib.mjs`](dist-editor/water-lib.mjs), or run `npm run build:editor`.
+2. Upload that pair into one Editor folder. For the optional sky, also upload [`atmosphere-sky.mjs`](dist-editor/atmosphere-sky.mjs) + [`sky-lib.mjs`](dist-editor/sky-lib.mjs). Parse the component scripts’ attributes.
 3. Add `atmosphereSky` to an entity and assign your directional light.
 4. Add `waterSurface` to another entity and assign your camera and sky entity.
 5. Enable HDR/tone mapping in your camera setup. The water component requests the scene colour and depth maps it needs.

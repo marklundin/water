@@ -8,10 +8,12 @@ objects and controls for checking disable/enable behaviour.
 ## PlayCanvas Editor
 
 1. In this checkout, run `npm install` and `npm run build:editor`.
-2. Upload **`dist-editor/water-scripts.mjs`** into the Editor's Assets panel. This is one bundled
-   ESM script: its only external import is `playcanvas`, supplied by the Editor. The generated
-   classes retain their `@attribute` comments. Do not upload the unbundled source files alone:
-   their relative module imports require the rest of the package and a module-aware build.
+2. For water, upload **`dist-editor/water-surface.mjs`** and **`dist-editor/water-lib.mjs`**
+   into the same Editor folder. The first is the readable component; the second contains
+   only the water renderer. For our optional atmosphere, also
+   upload **`atmosphere-sky.mjs`** and **`sky-lib.mjs`** together in a folder. Each pair is
+   independent of the other and of every Adrift file. Relative ESM imports connect them;
+   the Editor supplies `playcanvas`.
 3. Parse the uploaded script's attributes. Add a Script component to an entity and add
    **`atmosphereSky`**. Assign an existing directional-light entity to **Light Entity**, or attach
    the script to the directional-light entity itself. The light is optional if only the sky and
@@ -45,7 +47,8 @@ from this checkout, replace `water/scripts` below with `./src/scripts/index.js`.
 
 ```js
 import { Entity, registerScript } from 'playcanvas';
-import { WaterScript, SkyScript } from 'water/scripts';
+import { WaterScript } from 'water/scripts/water';
+import { SkyScript } from 'water/scripts/sky';
 
 // app, cameraEntity and sunlightEntity are supplied by the application.
 // app must include Camera, Light, Render and Script component systems.
@@ -152,16 +155,15 @@ without a directional light, while SkyScript can run without any WaterScript.
 
 ## Verification
 
-`npm run build:editor` creates the uploadable artifact. `npm test` covers readiness ordering,
+`npm run build:editor` creates the four uploadable water/sky modules. `npm test` covers readiness ordering,
 attribute changes, texture-disposal ordering, repeated enable/disable, shared camera-map leases,
-map ownership and the generated bundle's preserved attributes and sole engine import. These
+map ownership, standalone custom lighting, and the generated modules’ dependency boundaries and preserved attributes. These
 checks use real engine Script/Entity/event classes with GPU renderer fakes.
 
 Open `/demo/script.html` and `/demo/script.html?gfx=webgl2` in a browser to exercise the actual
 component integration and both GPU backends. The fixture's buttons disable/re-enable each
-component and its visible status reports readiness. Editor-side upload/attribute parsing still
-needs confirmation in the target Editor project; a source or bundle test alone does not verify
-that project's engine configuration.
+component and its visible status reports readiness. Editor-side upload and attribute parsing must also be checked after migrating an existing project;
+source tests alone do not verify its saved asset references.
 
 ### Underwater scene materials
 
@@ -184,7 +186,10 @@ appearance; there is no separate demo-only underwater fog control.
 [Water + Atmosphere](https://playcanvas.com/editor/scene/2591939) uses a small,
 authored scene. The camera stays at its Editor transform; imported coast and buoy
 templates contain native render entities that can be inspected and repositioned.
-There is no runtime gallery bootstrap or hosted asset root.
+There is no runtime gallery bootstrap or hosted asset root. Assets are organised into
+**Water**, **Sky** and **Adrift Example** folders. The Water folder is the complete reusable
+water dependency set; Sky is optional. The previous gallery bootstrap is retained under
+Adrift Example as `unused-gallery-bootstrap.mjs`, with Preload off and Exclude on.
 
 | Entity | Script | Attribute connections |
 | --- | --- | --- |
@@ -220,14 +225,34 @@ example code, separate from the reusable water and atmosphere components.
 To rebuild the uploadable scripts:
 
 ```sh
-npm run build:editor          # reusable waterSurface + atmosphereSky
-npm run build:editor:adrift   # example camera, buoy and terrain scripts
+npm run build:editor          # independent water and sky component/runtime pairs
+npm run build:editor:adrift   # separate example camera, buoy and terrain components
 npm run export:editor:buoy    # offline export of the existing buoy prop
 npm run build                # compressed production coast and textures
 ```
 
-Upload `dist-editor/water-scripts.mjs` and `dist-editor/adrift-scripts.mjs` and parse
-their attributes. Import `dist-editor/adrift-buoy.glb` and
+Upload the water/sky pairs described above, plus these example-only files:
+
+| Component | Companion module | Responsibility |
+| --- | --- | --- |
+| `adrift-camera.mjs` | `adrift-post.mjs` | Camera Frame and focus settings |
+| `adrift-buoy.mjs` | None | Animate an existing prop using water surface samples |
+| `adrift-terrain.mjs` | `adrift-materials.mjs` | Coast materials and underwater receiver registration |
+
+Keep each component and its companion in the same Editor folder. Parse the five component
+scripts (`water-surface`, `atmosphere-sky`, `adrift-camera`, `adrift-buoy`, `adrift-terrain`).
+The library modules are dependencies, not components to attach to entities.
+
+To take water into another project, copy **only the water pair** and connect your camera.
+Supply custom lighting with `setEnvironment()` as above, or copy the optional sky pair and
+assign Sky Entity. No coast, buoy, textures, camera controller or post effects are required.
+The low-level `Water` class is also exported by `water-lib.mjs` for custom integrations.
+
+When migrating from the old combined bundles, replace them rather than retaining duplicate
+`waterSurface` / `atmosphereSky` / `adrift*` registrations. Existing script names and attribute
+names are unchanged, so authored scene references can be retained.
+
+ Import `dist-editor/adrift-buoy.glb` and
 `dist/demo/assets/coast/coast.glb`, then drag their templates into the hierarchy.
 Upload the seven production texture files from `dist/demo/assets/` and connect the
 attributes listed above. Imported coast materials and embedded textures remain

@@ -161,13 +161,59 @@ test('invalid camera setup reports a useful error without leaking a map lease', 
     assert.equal(script._active, false);
 });
 
-test('generated Editor bundle keeps attributes and has only the engine as an external import', async () => {
-    const bundle = await readFile(new URL('../dist-editor/water-scripts.mjs', import.meta.url), 'utf8');
-    const imports = [...bundle.matchAll(/^import .+ from ['"](.+)['"];$/gm)].map(match => match[1]);
-    assert.deepEqual(imports, ['playcanvas']);
-    assert.match(bundle, /@type \{Entity\}/);
-    assert.match(bundle, /@attribute[\s\S]*?windSpeed = 9/);
-    assert.match(bundle, /@type \{'low' \| 'medium' \| 'high'\}/);
-    assert.match(bundle, /export class WaterScript extends Script/);
-    assert.match(bundle, /export class SkyScript extends Script/);
+test('Editor modules are independently importable and preserve component attributes', async () => {
+    const read = name => readFile(new URL(`../dist-editor/${name}`, import.meta.url), 'utf8');
+    for (const [file, name, dependency] of [
+        ['water-surface.mjs', 'WaterScript', './water-lib.mjs'],
+        ['atmosphere-sky.mjs', 'SkyScript', './sky-lib.mjs']
+    ]) {
+        const code = await read(file);
+        const imports = [...code.matchAll(/^import .+ from ['"](.+)['"];$/gm)].map(match => match[1]);
+        assert.deepEqual(imports, ['playcanvas', dependency]);
+        assert.match(code, /@type \{Entity\}/);
+        assert.ok(code.includes(`export class ${name} extends Script`));
+        assert.equal(typeof (await import(`../dist-editor/${file}`))[name], 'function');
+    }
+    assert.deepEqual(Object.keys(await import('../dist-editor/water-lib.mjs')).sort(), ['WATER_DEFAULTS', 'Water', 'bakeShoreMap']);
+    const water = await read('water-lib.mjs');
+    const sky = await read('sky-lib.mjs');
+    assert.doesNotMatch(water, /class Sky|Adrift|CinematicFrame|applyTerrain|camera-frame/);
+    assert.doesNotMatch(sky, /class Water|Adrift|CinematicFrame|FFT/);
+    for (const code of [water, sky]) {
+        const imports = [...code.matchAll(/^import .+ from ['"](.+)['"];$/gm)].map(match => match[1]);
+        assert.deepEqual(imports, ['playcanvas']);
+    }
+    assert.deepEqual(Object.keys(await import('water/scripts/water')), ['WaterScript']);
+    assert.deepEqual(Object.keys(await import('water/scripts/sky')), ['SkyScript']);
+});
+
+test('standalone water needs no sky or example scripts and retains custom lighting', () => {
+    const camera = cameraHost(), ocean = host('Independent ocean');
+    const script = prepare(WaterScript, ocean.entity, { cameraEntity: camera.entity });
+    script._createWater = config => new FakeWater(config);
+    script.initialize();
+    assert.equal(script.water, null);
+    const environment = { atlas: {}, sunDirection: new Vec3(0, 1, 0), sunColor: new Color(1, 1, 1) };
+    script.setEnvironment(environment);
+    assert.ok(script.water);
+    assert.equal(script.water.environment.atlas, environment.atlas);
+    script.enabled = false;
+    script.enabled = true;
+    assert.equal(script.water.environment.atlas, environment.atlas);
+    script.enabled = false;
+    assert.deepEqual(camera.counts, { color: 0, depth: 0 });
+});
+
+test('Adrift components do not bundle or import the reusable renderers', async () => {
+    for (const [file, name, dependency] of [
+        ['adrift-camera.mjs', 'AdriftCamera', './adrift-post.mjs'],
+        ['adrift-buoy.mjs', 'AdriftBuoy', null],
+        ['adrift-terrain.mjs', 'AdriftTerrain', './adrift-materials.mjs']
+    ]) {
+        const code = await readFile(new URL(`../dist-editor/${file}`, import.meta.url), 'utf8');
+        const imports = [...code.matchAll(/^import .+ from ['"](.+)['"];$/gm)].map(match => match[1]);
+        assert.deepEqual(imports, dependency ? ['playcanvas', dependency] : ['playcanvas']);
+        assert.deepEqual([...code.matchAll(/export class (\w+) extends Script/g)].map(m => m[1]), [name]);
+        assert.doesNotMatch(code, /new Water\(|new Sky\(|new Entity\(/);
+    }
 });

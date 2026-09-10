@@ -6,7 +6,9 @@
   "exports": {
     ".": "./src/index.js",
     "./sky": "./src/sky/index.js",
-    "./scripts": "./src/scripts/index.js"
+    "./scripts": "./src/scripts/index.js",
+    "./scripts/water": "./src/scripts/WaterScript.mjs",
+    "./scripts/sky": "./src/scripts/SkyScript.mjs"
   },
   "files": [
     "src",
